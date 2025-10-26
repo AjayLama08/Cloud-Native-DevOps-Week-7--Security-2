@@ -1,0 +1,6 @@
+{
+  "id": "product-123",
+  "name": "Example Product",
+  "pricePence": 1999,
+  "description": "This is a sample product for testing the upsert endpoint"
+}
