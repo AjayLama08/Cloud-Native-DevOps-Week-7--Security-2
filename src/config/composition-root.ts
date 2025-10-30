@@ -3,13 +3,25 @@ import type { UpsertProductDeps } from '../app/upsert-product';
 import type { ProductRepo } from '../domain/product-repo';
 import { FakeProductRepo } from '../infra/fake-product-repo';
 import { DummyProductUpdatedNotifier } from '../infra/dummy-product-updated-notifier';
+import { HttpProductUpdatedNotifier } from '../infra/http-product-updated-notifier';
 import type { ProductUpdatedNotifier } from '../app/product-updated-notifier';
+
+// Editable, non-secret lab endpoint; empty deliberately selects dummy mode.
+const PRODUCT_UPDATED_ENDPOINT: string = '';
 
 let cachedProductUpdatedNotifier: ProductUpdatedNotifier | null = null;
 
 export const getProductUpdatedNotifier = (): ProductUpdatedNotifier => {
   if (!cachedProductUpdatedNotifier) {
-    cachedProductUpdatedNotifier = new DummyProductUpdatedNotifier();
+    const endpoint = PRODUCT_UPDATED_ENDPOINT;
+    if (endpoint.trim() !== '') {
+      cachedProductUpdatedNotifier = new HttpProductUpdatedNotifier({
+        endpoint,
+        fetch: globalThis.fetch,
+      });
+    } else {
+      cachedProductUpdatedNotifier = new DummyProductUpdatedNotifier();
+    }
   }
   return cachedProductUpdatedNotifier;
 };
