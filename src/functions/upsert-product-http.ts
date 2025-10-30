@@ -59,6 +59,16 @@ const upsertProductHandler = async (
     const result = await upsertProduct(deps, parsed.data);
 
     if (!result.success) {
+      if (result.failure === 'notification') {
+        return {
+          status: 502,
+          jsonBody: {
+            success: false,
+            message: 'Product saved, but the update notification failed',
+            productSaved: true,
+          },
+        };
+      }
       return {
         status: 400,
         jsonBody: {

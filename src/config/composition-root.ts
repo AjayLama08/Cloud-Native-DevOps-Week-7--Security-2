@@ -2,6 +2,17 @@ import type { ListProductsDeps } from '../app/list-products';
 import type { UpsertProductDeps } from '../app/upsert-product';
 import type { ProductRepo } from '../domain/product-repo';
 import { FakeProductRepo } from '../infra/fake-product-repo';
+import { DummyProductUpdatedNotifier } from '../infra/dummy-product-updated-notifier';
+import type { ProductUpdatedNotifier } from '../app/product-updated-notifier';
+
+let cachedProductUpdatedNotifier: ProductUpdatedNotifier | null = null;
+
+export const getProductUpdatedNotifier = (): ProductUpdatedNotifier => {
+  if (!cachedProductUpdatedNotifier) {
+    cachedProductUpdatedNotifier = new DummyProductUpdatedNotifier();
+  }
+  return cachedProductUpdatedNotifier;
+};
 
 let cachedProductRepo: ProductRepo | null = null;
 
@@ -16,7 +27,12 @@ export const createListProductsDeps = (): ListProductsDeps => ({
   productRepo: getProductRepo(),
 });
 
-export const createUpsertProductDeps = (): UpsertProductDeps => ({
-  productRepo: getProductRepo(),
-  now: () => new Date(),
-});
+export const createUpsertProductDeps = (): UpsertProductDeps => {
+  // Resolve and validate delivery configuration before constructing repository dependencies.
+  const productUpdatedNotifier = getProductUpdatedNotifier();
+  return {
+    productRepo: getProductRepo(),
+    now: () => new Date(),
+    productUpdatedNotifier,
+  };
+};
