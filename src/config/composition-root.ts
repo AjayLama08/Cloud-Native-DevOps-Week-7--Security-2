@@ -15,9 +15,11 @@ export const getProductUpdatedNotifier = (): ProductUpdatedNotifier => {
   if (!cachedProductUpdatedNotifier) {
     const endpoint = PRODUCT_UPDATED_ENDPOINT;
     if (endpoint.trim() !== '') {
+      const hostKey = process.env.PRODUCT_UPDATED_KEY ?? '';
       cachedProductUpdatedNotifier = new HttpProductUpdatedNotifier({
         endpoint,
         fetch: globalThis.fetch,
+        hostKey,
       });
     } else {
       cachedProductUpdatedNotifier = new DummyProductUpdatedNotifier();

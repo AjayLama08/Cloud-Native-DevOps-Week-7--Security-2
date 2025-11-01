@@ -150,3 +150,9 @@ with `func azure functionapp publish <your-function-app> --no-build`.
 The Product is saved before notification. See Week 6 worksheet B3's in-memory
 save followed by failed publication: notification failure does not imply rollback.
 For assessment work, follow Week 5 to externalise these non-secret settings too.
+
+Keep `PRODUCT_UPDATED_KEY` in the local shell or the caller's Azure application
+settings. Set only the receiver key using
+`az functionapp config appsettings set`; keep the full endpoint in the source
+constant. A key-only update needs no code publication. Changing the endpoint
+requires rebuilding and republishing. Never put keys in source or settings files.
