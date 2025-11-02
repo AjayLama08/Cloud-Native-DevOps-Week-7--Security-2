@@ -102,7 +102,7 @@ const upsertProductHandler = async (
 
 app.http('upsertProductHttp', {
   methods: ['PUT', 'POST'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   route: 'products',
   handler: upsertProductHandler,
 });

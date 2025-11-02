@@ -137,6 +137,18 @@ You can now access your endpoints at:
 https://<your-function-app>.azurewebsites.net/api/products
 ```
 
+### Read the host auth key
+
+```bash
+az functionapp keys list \
+  --name <your-function-app> \
+  --resource-group <your-resource-group> \
+  --query masterKey \
+  --output tsv
+```
+
+This key will need to be shared with any backend service that needs to call `upsertProduct`. Calls to `upsertProduct` must include the key in the `x-functions-key` HTTP header. It is also possible to acquire a key that just works for `upsertProduct` (rather than for the whole service).
+
 ## Product Updated Notifications
 
 The non-secret `PRODUCT_UPDATED_ENDPOINT` constant in `src/config/composition-root.ts`
