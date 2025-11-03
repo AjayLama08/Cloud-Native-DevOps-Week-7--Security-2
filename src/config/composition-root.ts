@@ -6,9 +6,21 @@ import { FakeProductRepo } from '../infra/fake-product-repo';
 import { DummyProductUpdatedNotifier } from '../infra/dummy-product-updated-notifier';
 import { HttpProductUpdatedNotifier } from '../infra/http-product-updated-notifier';
 import type { ProductUpdatedNotifier } from '../app/product-updated-notifier';
+import {
+  OAuth2Validator,
+  TokenVerificationUnavailableError,
+} from '../infra/oauth2-validator';
+import type { AuthContext } from '../app/auth-context';
 
-// Editable, non-secret lab endpoint; empty deliberately selects dummy mode.
+// Week 7 lab configuration: edit these non-secret values for your resources.
+// Use the exact Auth0 issuer, including its trailing slash, and API identifier.
+const AUTH0_ISSUER: string = '';
+const AUTH0_AUDIENCE: string = '';
+// Leave empty for the first local dummy-notifier check. To enable HTTP delivery,
+// set the complete URL, e.g. https://YOUR_RECEIVER_HOSTNAME/api/product-updated.
 const PRODUCT_UPDATED_ENDPOINT: string = '';
+// Keep PRODUCT_UPDATED_KEY in the shell locally or Azure application settings.
+// In assessment work, follow Week 5 to externalise the non-secret settings too.
 
 let cachedProductUpdatedNotifier: ProductUpdatedNotifier | null = null;
 
@@ -55,9 +67,47 @@ export const getProductRepo = (): ProductRepo => {
   return cachedProductRepo;
 };
 
-export const createListProductsDeps = (): ListProductsDeps => ({
-  productRepo: getProductRepo(),
-});
+let cachedOAuth2Validator: OAuth2Validator | null = null;
+
+export const getOAuth2Validator = (): OAuth2Validator => {
+  if (!cachedOAuth2Validator) {
+    const issuer = AUTH0_ISSUER;
+    const audience = AUTH0_AUDIENCE;
+
+    if (!issuer || !audience) {
+      throw new TokenVerificationUnavailableError(
+        'Token verification is not configured',
+      );
+    }
+    try {
+      cachedOAuth2Validator = new OAuth2Validator({
+        jwksUri: `${issuer}.well-known/jwks.json`,
+        issuer,
+        audience,
+      });
+    } catch (error) {
+      throw new TokenVerificationUnavailableError(
+        'Invalid token verification configuration',
+        { cause: error },
+      );
+    }
+  }
+  return cachedOAuth2Validator;
+};
+
+export const createListProductsDeps = async (
+  token: string | null,
+): Promise<ListProductsDeps> => {
+  const authContext: AuthContext =
+    token === null
+      ? { authenticated: false, scopes: [] }
+      : await getOAuth2Validator().validate(token);
+
+  return {
+    productRepo: getProductRepo(),
+    authContext,
+  };
+};
 
 export const createUpsertProductDeps = (): UpsertProductDeps => {
   // Resolve and validate delivery configuration before constructing repository dependencies.

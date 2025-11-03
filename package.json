@@ -13,7 +13,8 @@
     "test": "echo \"No automated tests configured yet\" && exit 1"
   },
   "dependencies": {
-    "@azure/functions": "~4.16.5"
+    "@azure/functions": "~4.16.5",
+    "jose": "~6.1.0"
   },
   "devDependencies": {
     "@types/node": "~22.20.5",
